@@ -1,30 +1,28 @@
-const express = require('express');
+const express = require("express");
 const app = express();
 const port = 3000;
-const http = require('http');
-const path = require('path');
-
+const http = require("http");
+const path = require("path");
 
 const server = http.createServer(app);
 const socketio = require("socket.io");
 const io = socketio(server);
 
-
 app.set("view engine", "ejs");
-app.set(express.static(path.join(__dirname, 'public')));
-io.on('connection', (socket) => {
-  console.log('Một người dùng đã kết nối');
-
-  socket.on('disconnect', () => {
-    console.log('Người dùng đã ngắt kết nối');
+app.use(express.static(__dirname));
+io.on("connection", function (socket) {
+  socket.on("send-location", (data) => {
+    io.emit("receive-location", { id: socket.id, ...data });
   });
-  // Xử lý các sự kiện khác từ client ở đây
+
+  socket.on("disconnect", function () {
+    io.emit("user-disconnected", socket.id);
+  });
 });
 
-app.get('/', (req, res) => {
-  res.send('index');
+app.get("/", (req, res) => {
+  res.render("index");
 });
-
 
 server.listen(port, () => {
   console.log(`Server đang chạy tại http://localhost:${port}`);
